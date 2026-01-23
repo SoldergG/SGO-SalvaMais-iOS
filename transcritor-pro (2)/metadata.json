@@ -1,0 +1,5 @@
+{
+  "name": "Transcritor Pro",
+  "description": "Uma ferramenta robusta para transcrição de áudio processada via Gemini API (Nuvem), garantindo alta precisão e velocidade.",
+  "requestFramePermissions": []
+}
