@@ -2,13 +2,22 @@ import SwiftUI
 
 // MARK: - Dashboard View
 
+// MARK: - Dashboard Active Sheet
+
+enum DashboardActiveSheet: Identifiable {
+    case servicos, calendar, inventory, stats, compliance
+    var id: Self { self }
+}
+
 struct DashboardView: View {
     @EnvironmentObject var authVM: AuthViewModel
     @EnvironmentObject var dashboardVM: DashboardViewModel
+    @EnvironmentObject var servicosVM: ServicosViewModel
     @State private var showNotifications = false
     @State private var showReportSheet = false
     @State private var selectedReportType: ReportType?
     @State private var selectedISNReportType: ReportType?
+    @State private var activeSheet: DashboardActiveSheet?
     @State private var animateStats = false
     
     var body: some View {
@@ -115,6 +124,31 @@ struct DashboardView: View {
                 ISNReportFormView(reportType: type)
                     .environmentObject(authVM)
                     .environmentObject(dashboardVM)
+            }
+            .sheet(item: $activeSheet) { sheet in
+                switch sheet {
+                case .servicos:
+                    NavigationStack {
+                        ServicosListView()
+                            .environmentObject(servicosVM)
+                            .environmentObject(authVM)
+                    }
+                case .calendar:
+                    NavigationStack {
+                        CalendarView()
+                            .environmentObject(servicosVM)
+                            .environmentObject(authVM)
+                    }
+                case .inventory:
+                    InventoryOverviewView()
+                        .environmentObject(dashboardVM)
+                case .stats:
+                    StatsView()
+                        .environmentObject(dashboardVM)
+                case .compliance:
+                    ComplianceView()
+                        .environmentObject(dashboardVM)
+                }
             }
             .onAppear {
                 withAnimation(.easeOut(duration: 0.5).delay(0.2)) {
@@ -258,12 +292,18 @@ struct DashboardView: View {
                 }
                 
                 if authVM.isManager {
-                    SGOToolCard(title: "Gestão de Postos", subtitle: "Unidades Salva+", icon: "🏢") {}
+                    SGOToolCard(title: "Gestão de Postos", subtitle: "Unidades Salva+", icon: "🏢") {
+                        activeSheet = .servicos
+                    }
                 }
-                
-                SGOToolCard(title: "Escalas & Agenda", subtitle: "Planeamento Mensal", icon: "📅") {}
-                
-                SGOToolCard(title: "Estado Inventário", subtitle: "Equipamento Ativo", icon: "📦") {}
+
+                SGOToolCard(title: "Escalas & Agenda", subtitle: "Planeamento Mensal", icon: "📅") {
+                    activeSheet = .calendar
+                }
+
+                SGOToolCard(title: "Estado Inventário", subtitle: "Equipamento Ativo", icon: "📦") {
+                    activeSheet = .inventory
+                }
                 
                 SGOToolCard(title: "Site ISN", subtitle: "Regras & Exames", icon: "🏖️") {
                     if let url = URL(string: "https://www.amn.pt/ISN") {
@@ -272,9 +312,11 @@ struct DashboardView: View {
                 }
                 
                 if authVM.isHighLevel || authVM.isCliente {
-                    SGOToolCard(title: "Estatísticas Globais", subtitle: "Análise de Época", icon: "📊") {}
+                    SGOToolCard(title: "Estatísticas Globais", subtitle: "Análise de Época", icon: "📊") {
+                        activeSheet = .stats
+                    }
                 }
-                
+
                 if authVM.isManager {
                     SGOToolCard(
                         title: "Compliance RH",
@@ -282,7 +324,9 @@ struct DashboardView: View {
                         icon: "🛡️",
                         statusLabel: dashboardVM.complianceAlerts.isEmpty ? "OK" : "\(dashboardVM.complianceAlerts.count) Alertas",
                         statusColor: dashboardVM.complianceAlerts.isEmpty ? .sgoGreen : .sgoRed
-                    ) {}
+                    ) {
+                        activeSheet = .compliance
+                    }
                 }
             }
         }

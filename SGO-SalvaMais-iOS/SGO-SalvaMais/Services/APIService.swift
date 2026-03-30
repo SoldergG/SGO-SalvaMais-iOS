@@ -81,76 +81,182 @@ class APIService {
     }
     
     // MARK: - Users
-    
+
     func getAllUsers() async throws -> [User] {
         try await request("/users")
     }
-    
+
+    func addUser(_ userData: [String: Any]) async throws -> User {
+        try await request("/users", method: "POST", body: userData)
+    }
+
+    func updateUser(_ id: String, data: [String: Any]) async throws -> User {
+        try await request("/users/\(id)", method: "PUT", body: data)
+    }
+
+    // MARK: - Entities
+
+    func getAllEntities() async throws -> [Entity] {
+        try await request("/entities")
+    }
+
+    func addEntity(_ entity: [String: Any]) async throws -> Entity {
+        try await request("/entities", method: "POST", body: entity)
+    }
+
+    func updateEntity(_ id: String, data: [String: Any]) async throws -> Entity {
+        try await request("/entities/\(id)", method: "PUT", body: data)
+    }
+
     // MARK: - Servicos
-    
+
     func getServicos() async throws -> [Servico] {
         try await request("/servicos")
     }
-    
+
     func getServicoById(_ id: String) async throws -> Servico {
         try await request("/servicos/\(id)")
     }
-    
+
+    func addServico(_ data: [String: Any]) async throws -> Servico {
+        try await request("/servicos", method: "POST", body: data)
+    }
+
+    func updateServico(_ id: String, data: [String: Any]) async throws -> Servico {
+        try await request("/servicos/\(id)", method: "PUT", body: data)
+    }
+
+    func assignLifeguardToServico(_ servicoId: String, lifeguardId: String) async throws -> Servico {
+        try await request("/servicos/\(servicoId)/assign-lifeguard", method: "POST", body: ["lifeguardId": lifeguardId])
+    }
+
+    func removeLifeguardFromServico(_ servicoId: String, lifeguardId: String) async throws -> Servico {
+        try await request("/servicos/\(servicoId)/remove-lifeguard", method: "POST", body: ["lifeguardId": lifeguardId])
+    }
+
+    func assignCoordinatorToServico(_ servicoId: String, coordinatorId: String) async throws -> Servico {
+        try await request("/servicos/\(servicoId)/assign-coordinator", method: "POST", body: ["coordinatorId": coordinatorId])
+    }
+
+    func removeCoordinatorFromServico(_ servicoId: String, coordinatorId: String) async throws -> Servico {
+        try await request("/servicos/\(servicoId)/remove-coordinator", method: "POST", body: ["coordinatorId": coordinatorId])
+    }
+
     // MARK: - Reports
-    
+
     func getReports(servicoId: String? = nil) async throws -> [Report] {
         if let sid = servicoId {
             return try await request("/reports?servicoId=\(sid)")
         }
         return try await request("/reports")
     }
-    
+
+    func getReportById(_ id: String) async throws -> Report {
+        try await request("/reports/\(id)")
+    }
+
     func addReport(_ report: [String: Any]) async throws -> Report {
         try await request("/reports", method: "POST", body: report)
     }
-    
+
+    func updateReport(_ id: String, data: [String: Any]) async throws -> Report {
+        try await request("/reports/\(id)", method: "PUT", body: data)
+    }
+
     // MARK: - Shifts
-    
+
     func getShifts(servicoId: String) async throws -> [Shift] {
         try await request("/shifts/\(servicoId)")
     }
-    
+
     func addShift(_ shift: [String: Any]) async throws -> Shift {
         try await request("/shifts", method: "POST", body: shift)
     }
-    
+
     func deleteShift(_ id: String) async throws -> EmptyResponse {
         try await request("/shifts/\(id)", method: "DELETE")
     }
-    
+
     // MARK: - Inventory
-    
+
     func getInventory(servicoId: String) async throws -> [InventoryItem] {
         try await request("/inventory/\(servicoId)")
     }
-    
+
+    func addInventoryItem(_ item: [String: Any]) async throws -> InventoryItem {
+        try await request("/inventory", method: "POST", body: item)
+    }
+
+    func updateInventoryItem(_ id: String, data: [String: Any]) async throws -> InventoryItem {
+        try await request("/inventory/\(id)", method: "PUT", body: data)
+    }
+
+    func deleteInventoryItem(_ id: String) async throws -> EmptyResponse {
+        try await request("/inventory/\(id)", method: "DELETE")
+    }
+
     // MARK: - Notifications
-    
+
     func getNotifications(userId: String) async throws -> [AppNotification] {
         try await request("/notifications?userId=\(userId)")
     }
-    
+
+    func createNotification(_ data: [String: Any]) async throws -> AppNotification {
+        try await request("/notifications", method: "POST", body: data)
+    }
+
     func markNotificationsAsRead(userId: String) async throws -> [AppNotification] {
         try await request("/notifications/read", method: "POST", body: ["userId": userId])
     }
-    
+
     func clearNotifications(userId: String) async throws -> EmptyResponse {
         try await request("/notifications/clear", method: "POST", body: ["userId": userId])
     }
-    
+
     func deleteNotification(_ id: String) async throws -> EmptyResponse {
         try await request("/notifications/\(id)", method: "DELETE")
     }
-    
+
     // MARK: - Evaluations
-    
+
     func getEvaluations() async throws -> [Evaluation] {
         try await request("/evaluations")
+    }
+
+    func addEvaluation(_ data: [String: Any]) async throws -> Evaluation {
+        try await request("/evaluations", method: "POST", body: data)
+    }
+
+    func getEvaluationByServicoId(_ servicoId: String) async throws -> Evaluation {
+        try await request("/evaluations/servico/\(servicoId)")
+    }
+
+    // MARK: - Config
+
+    func getAccessPermissions() async throws -> [String: [String: Bool]] {
+        try await request("/config/access_permissions")
+    }
+
+    func updateAccessPermissions(_ permissions: [String: Any]) async throws -> EmptyResponse {
+        try await request("/config/access_permissions", method: "POST", body: ["key": "access_permissions", "value": permissions])
+    }
+
+    func getAppConfig() async throws -> [String: String] {
+        try await request("/config/app_config")
+    }
+
+    func updateAppConfig(_ config: [String: Any]) async throws -> EmptyResponse {
+        try await request("/config/app_config", method: "POST", body: ["key": "app_config", "value": config])
+    }
+
+    // MARK: - Logs
+
+    func getEmailLogs() async throws -> [[String: String]] {
+        try await request("/email-logs")
+    }
+
+    func getAccessLogs() async throws -> [[String: String]] {
+        try await request("/access-logs")
     }
 }
 

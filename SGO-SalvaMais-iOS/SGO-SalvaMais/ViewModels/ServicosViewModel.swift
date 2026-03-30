@@ -54,12 +54,49 @@ class ServicosViewModel: ObservableObject {
     }
     
     // MARK: - Fetch Inventory
-    
+
     func fetchInventory(for servicoId: String) async {
         do {
             inventory = try await APIService.shared.getInventory(servicoId: servicoId)
         } catch {
             inventory = []
+        }
+    }
+
+    // MARK: - Inventory CRUD
+
+    func addInventoryItem(_ data: [String: Any]) async -> Bool {
+        do {
+            let item = try await APIService.shared.addInventoryItem(data)
+            inventory.append(item)
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            return false
+        }
+    }
+
+    func updateInventoryItem(_ id: String, data: [String: Any]) async -> Bool {
+        do {
+            let updated = try await APIService.shared.updateInventoryItem(id, data: data)
+            if let idx = inventory.firstIndex(where: { $0.id == id }) {
+                inventory[idx] = updated
+            }
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            return false
+        }
+    }
+
+    func deleteInventoryItem(_ id: String) async -> Bool {
+        do {
+            let _ = try await APIService.shared.deleteInventoryItem(id)
+            inventory.removeAll { $0.id == id }
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            return false
         }
     }
 }

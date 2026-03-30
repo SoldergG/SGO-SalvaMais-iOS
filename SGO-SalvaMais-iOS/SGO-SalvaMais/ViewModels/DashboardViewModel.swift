@@ -8,6 +8,7 @@ class DashboardViewModel: ObservableObject {
     @Published var reports: [Report] = []
     @Published var users: [User] = []
     @Published var notifications: [AppNotification] = []
+    @Published var allInventory: [(servicoName: String, items: [InventoryItem])] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
     
@@ -129,5 +130,22 @@ class DashboardViewModel: ObservableObject {
     func deleteNotification(_ id: String) async {
         let _ = try? await APIService.shared.deleteNotification(id)
         notifications.removeAll { $0.id == id }
+    }
+
+    // MARK: - Inventory Overview
+
+    func fetchInventoryOverview() async {
+        var result: [(servicoName: String, items: [InventoryItem])] = []
+        for servico in activeServicos {
+            do {
+                let items = try await APIService.shared.getInventory(servicoId: servico.id)
+                if !items.isEmpty {
+                    result.append((servicoName: servico.name, items: items))
+                }
+            } catch {
+                // Skip servicos with no inventory
+            }
+        }
+        allInventory = result
     }
 }

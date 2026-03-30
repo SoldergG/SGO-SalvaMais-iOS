@@ -117,6 +117,27 @@ struct AppNotification: Identifiable, Codable {
     }
 }
 
+// MARK: - Evaluation Scores
+
+struct EvaluationScores: Codable {
+    var punctuality: Double?
+    var professionalism: Double?
+    var vigilance: Double?
+    var interaction: Double?
+    var safety: Double?
+    var response: Double?
+    var communication: Double?
+    var global: Double?
+}
+
+// MARK: - Lifeguard Evaluation
+
+struct LifeguardEvaluation: Codable {
+    var lifeguardId: String
+    var lifeguardName: String
+    var score: Double
+}
+
 // MARK: - Evaluation
 
 struct Evaluation: Identifiable, Codable {
@@ -125,14 +146,19 @@ struct Evaluation: Identifiable, Codable {
     var clientId: String
     var clientName: String
     var entityName: String
+    var serviceStartDate: String?
+    var serviceEndDate: String?
     var submissionDate: String
+    var scores: EvaluationScores?
+    var lifeguardEvaluations: [LifeguardEvaluation]?
     var comments: String
     var wouldRehire: String
-    
+
     enum CodingKeys: String, CodingKey {
-        case id, servicoId, clientId, clientName, entityName, submissionDate, comments, wouldRehire
+        case id, servicoId, clientId, clientName, entityName, serviceStartDate, serviceEndDate
+        case submissionDate, scores, lifeguardEvaluations, comments, wouldRehire
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         if let idValue = try? container.decode(String.self, forKey: .id) {
@@ -145,7 +171,11 @@ struct Evaluation: Identifiable, Codable {
         clientId = try container.decodeIfPresent(String.self, forKey: .clientId) ?? ""
         clientName = try container.decodeIfPresent(String.self, forKey: .clientName) ?? ""
         entityName = try container.decodeIfPresent(String.self, forKey: .entityName) ?? ""
+        serviceStartDate = try container.decodeIfPresent(String.self, forKey: .serviceStartDate)
+        serviceEndDate = try container.decodeIfPresent(String.self, forKey: .serviceEndDate)
         submissionDate = try container.decodeIfPresent(String.self, forKey: .submissionDate) ?? ""
+        scores = try container.decodeIfPresent(EvaluationScores.self, forKey: .scores)
+        lifeguardEvaluations = try container.decodeIfPresent([LifeguardEvaluation].self, forKey: .lifeguardEvaluations)
         comments = try container.decodeIfPresent(String.self, forKey: .comments) ?? ""
         wouldRehire = try container.decodeIfPresent(String.self, forKey: .wouldRehire) ?? ""
     }
