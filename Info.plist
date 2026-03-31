@@ -19,5 +19,11 @@
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<true/>
 	</dict>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>A S+GO precisa de acesso à sua galeria de fotos para carregar imagens do seu Cartão ISN.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>A S+GO precisa de acesso à câmera para fotografar o seu Cartão ISN.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>A S+GO pode guardar imagens relacionadas com o seu registo na galeria.</string>
 </dict>
 </plist>
