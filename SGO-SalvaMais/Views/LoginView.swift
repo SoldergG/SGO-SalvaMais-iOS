@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import AVFoundation
 
 // MARK: - Login View
 
@@ -631,10 +632,13 @@ struct CardPhotoButton: View {
     @Binding var isUploading: Bool
     let onSelected: (UIImage) async -> Void
 
-    @State private var showPicker = false
+    @State private var showActionSheet = false
+    @State private var showGallery = false
+    @State private var showCamera = false
+    @State private var showCameraPermissionAlert = false
 
     var body: some View {
-        Button { showPicker = true } label: {
+        Button { showActionSheet = true } label: {
             ZStack {
                 RoundedRectangle(cornerRadius: 16)
                     .strokeBorder(
@@ -660,7 +664,6 @@ struct CardPhotoButton: View {
                             .scaledToFill()
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .clipShape(RoundedRectangle(cornerRadius: 15))
-
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 16))
                             .foregroundColor(.sgoGreen)
@@ -684,20 +687,63 @@ struct CardPhotoButton: View {
             .frame(height: 110)
         }
         .buttonStyle(.plain)
-        .sheet(isPresented: $showPicker) {
-            PHPickerRepresentable { selected in
-                image = selected
-                isUploading = true
-                Task {
-                    await onSelected(selected)
-                    isUploading = false
+        // Escolha: câmera ou galeria
+        .confirmationDialog("Adicionar foto do cartão", isPresented: $showActionSheet, titleVisibility: .visible) {
+            Button("Tirar Foto") { requestCameraAccess() }
+            Button("Escolher da Galeria") { showGallery = true }
+            Button("Cancelar", role: .cancel) {}
+        }
+        // Galeria
+        .sheet(isPresented: $showGallery) {
+            PHPickerRepresentable { handle($0) }
+        }
+        // Câmera
+        .sheet(isPresented: $showCamera) {
+            CameraPickerRepresentable { handle($0) }
+                .ignoresSafeArea()
+        }
+        // Permissão de câmera negada
+        .alert("Acesso à Câmera Bloqueado", isPresented: $showCameraPermissionAlert) {
+            Button("Abrir Definições") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
                 }
             }
+            Button("Cancelar", role: .cancel) {}
+        } message: {
+            Text("Para tirar fotos do cartão ISN, permite o acesso à câmera nas Definições do iPhone.")
+        }
+    }
+
+    private func handle(_ selected: UIImage) {
+        image = selected
+        isUploading = true
+        Task {
+            await onSelected(selected)
+            isUploading = false
+        }
+    }
+
+    private func requestCameraAccess() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            showCamera = true
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                DispatchQueue.main.async {
+                    if granted { showCamera = true }
+                    else { showCameraPermissionAlert = true }
+                }
+            }
+        case .denied, .restricted:
+            showCameraPermissionAlert = true
+        @unknown default:
+            showCameraPermissionAlert = true
         }
     }
 }
 
-// MARK: - PHPicker UIViewControllerRepresentable
+// MARK: - PHPicker (Galeria)
 
 struct PHPickerRepresentable: UIViewControllerRepresentable {
     let onImageSelected: (UIImage) -> Void
@@ -712,7 +758,6 @@ struct PHPickerRepresentable: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
-
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     class Coordinator: NSObject, PHPickerViewControllerDelegate {
@@ -728,6 +773,40 @@ struct PHPickerRepresentable: UIViewControllerRepresentable {
                     DispatchQueue.main.async { self.parent.onImageSelected(image) }
                 }
             }
+        }
+    }
+}
+
+// MARK: - Camera Picker
+
+struct CameraPickerRepresentable: UIViewControllerRepresentable {
+    let onImageSelected: (UIImage) -> Void
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.allowsEditing = false
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: CameraPickerRepresentable
+        init(_ parent: CameraPickerRepresentable) { self.parent = parent }
+
+        func imagePickerController(_ picker: UIImagePickerController,
+                                   didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            picker.dismiss(animated: true)
+            if let image = info[.originalImage] as? UIImage {
+                parent.onImageSelected(image)
+            }
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            picker.dismiss(animated: true)
         }
     }
 }
