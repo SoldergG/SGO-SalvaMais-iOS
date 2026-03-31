@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 // MARK: - Login View
 
@@ -194,6 +195,12 @@ struct RegisterView: View {
     @State private var certNumber = ""
     @State private var certIssueDate = ""
     @State private var certExpiryDate = ""
+    @State private var certFrontImage: UIImage?
+    @State private var certBackImage: UIImage?
+    @State private var certPhotoUrl: String?
+    @State private var certPhotoBackUrl: String?
+    @State private var isUploadingFront = false
+    @State private var isUploadingBack = false
 
     // Privacy
     @State private var privacyAccepted = false
@@ -423,6 +430,32 @@ struct RegisterView: View {
                                 }
                                 .sgoGlassField()
                             }
+
+                            // Fotos do Cartão ISN
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("FOTO / PDF DO CARTÃO ISN")
+                                    .font(.system(size: 9, weight: .black))
+                                    .tracking(2)
+                                    .foregroundColor(.sgoTextMuted)
+
+                                HStack(spacing: 10) {
+                                    CardPhotoButton(
+                                        label: "FRENTE DO CARTÃO",
+                                        image: $certFrontImage,
+                                        isUploading: $isUploadingFront
+                                    ) { image in
+                                        await uploadCardPhoto(image: image, isFront: true)
+                                    }
+
+                                    CardPhotoButton(
+                                        label: "VERSO DO CARTÃO",
+                                        image: $certBackImage,
+                                        isUploading: $isUploadingBack
+                                    ) { image in
+                                        await uploadCardPhoto(image: image, isFront: false)
+                                    }
+                                }
+                            }
                         }
                         .padding(20)
                         .sgoGlassCard(cornerRadius: 24)
@@ -538,6 +571,19 @@ struct RegisterView: View {
         }
     }
 
+    // MARK: - Upload Foto Cartão
+
+    private func uploadCardPhoto(image: UIImage, isFront: Bool) async {
+        guard let jpeg = image.jpegData(compressionQuality: 0.6) else { return }
+        let filename = isFront ? "cert_front.jpg" : "cert_back.jpg"
+        do {
+            let url = try await APIService.shared.uploadPhoto(imageData: jpeg, filename: filename)
+            if isFront { certPhotoUrl = url } else { certPhotoBackUrl = url }
+        } catch {
+            errorMessage = "Erro ao carregar foto: \(error.localizedDescription)"
+        }
+    }
+
     // MARK: - Submeter Registo
 
     private func submitRegistration() async {
@@ -561,6 +607,8 @@ struct RegisterView: View {
         if !certNumber.isEmpty      { userData["certNumber"] = certNumber }
         if !certIssueDate.isEmpty   { userData["certIssueDate"] = certIssueDate }
         if !certExpiryDate.isEmpty  { userData["certExpiryDate"] = certExpiryDate }
+        if let url = certPhotoUrl   { userData["certPhotoUrl"] = url }
+        if let url = certPhotoBackUrl { userData["certPhotoBackUrl"] = url }
 
         do {
             let _ = try await APIService.shared.register(userData: userData)
@@ -572,6 +620,115 @@ struct RegisterView: View {
         }
 
         isRegistering = false
+    }
+}
+
+// MARK: - Card Photo Button
+
+struct CardPhotoButton: View {
+    let label: String
+    @Binding var image: UIImage?
+    @Binding var isUploading: Bool
+    let onSelected: (UIImage) async -> Void
+
+    @State private var showPicker = false
+
+    var body: some View {
+        Button { showPicker = true } label: {
+            ZStack {
+                RoundedRectangle(cornerRadius: 16)
+                    .strokeBorder(
+                        image != nil ? Color.blue.opacity(0.4) : Color.gray.opacity(0.3),
+                        style: StrokeStyle(lineWidth: 1.5, dash: image != nil ? [] : [6])
+                    )
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(image != nil ? Color.blue.opacity(0.05) : Color(UIColor.systemGray6).opacity(0.4))
+                    )
+
+                if isUploading {
+                    VStack(spacing: 6) {
+                        ProgressView().tint(.blue)
+                        Text("A carregar...")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.sgoTextMuted)
+                    }
+                } else if let img = image {
+                    ZStack(alignment: .topTrailing) {
+                        Image(uiImage: img)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .clipShape(RoundedRectangle(cornerRadius: 15))
+
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.sgoGreen)
+                            .padding(6)
+                    }
+                } else {
+                    VStack(spacing: 8) {
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 22))
+                            .foregroundColor(.sgoTextMuted)
+                        Text(label)
+                            .font(.system(size: 8, weight: .black))
+                            .tracking(1)
+                            .foregroundColor(.sgoTextMuted)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(8)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 110)
+        }
+        .buttonStyle(.plain)
+        .sheet(isPresented: $showPicker) {
+            PHPickerRepresentable { selected in
+                image = selected
+                isUploading = true
+                Task {
+                    await onSelected(selected)
+                    isUploading = false
+                }
+            }
+        }
+    }
+}
+
+// MARK: - PHPicker UIViewControllerRepresentable
+
+struct PHPickerRepresentable: UIViewControllerRepresentable {
+    let onImageSelected: (UIImage) -> Void
+
+    func makeUIViewController(context: Context) -> PHPickerViewController {
+        var config = PHPickerConfiguration()
+        config.filter = .images
+        config.selectionLimit = 1
+        let picker = PHPickerViewController(configuration: config)
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    class Coordinator: NSObject, PHPickerViewControllerDelegate {
+        let parent: PHPickerRepresentable
+        init(_ parent: PHPickerRepresentable) { self.parent = parent }
+
+        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+            picker.dismiss(animated: true)
+            guard let provider = results.first?.itemProvider,
+                  provider.canLoadObject(ofClass: UIImage.self) else { return }
+            provider.loadObject(ofClass: UIImage.self) { object, _ in
+                if let image = object as? UIImage {
+                    DispatchQueue.main.async { self.parent.onImageSelected(image) }
+                }
+            }
+        }
     }
 }
 

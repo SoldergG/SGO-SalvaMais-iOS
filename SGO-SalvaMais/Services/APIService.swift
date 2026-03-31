@@ -64,6 +64,15 @@ class APIService {
     func register(userData: [String: Any]) async throws -> User {
         try await request("/auth/register", method: "POST", body: userData)
     }
+
+    func uploadPhoto(imageData: Data, filename: String) async throws -> String {
+        let base64 = imageData.base64EncodedString()
+        let response: UploadResponse = try await request("/upload", method: "POST", body: [
+            "data": "data:image/jpeg;base64,\(base64)",
+            "filename": filename
+        ])
+        return response.url
+    }
     
     // MARK: - Health Check
     
@@ -175,3 +184,9 @@ enum APIError: LocalizedError {
 // MARK: - Empty Response
 
 struct EmptyResponse: Decodable {}
+
+// MARK: - Upload Response
+
+struct UploadResponse: Decodable {
+    let url: String
+}

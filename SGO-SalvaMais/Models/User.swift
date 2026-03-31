@@ -57,6 +57,7 @@ struct User: Identifiable, Codable {
     var certIssueDate: String?
     var certExpiryDate: String?
     var certPhotoUrl: String?
+    var certPhotoBackUrl: String?
     var isArchived: Bool?
     var isPending: Bool?
     var nacionalidade: String?
@@ -69,7 +70,7 @@ struct User: Identifiable, Codable {
     enum CodingKeys: String, CodingKey {
         case id, name, email, phone, role, entidade, entidadeIds, servicoIds
         case coordinatorId, nif, certNumber, certIssueDate, certExpiryDate
-        case certPhotoUrl, isArchived, isPending, nacionalidade, sexo, morada, dataNascimento
+        case certPhotoUrl, certPhotoBackUrl, isArchived, isPending, nacionalidade, sexo, morada, dataNascimento
         case privacyPolicyAccepted, privacyPolicyAcceptedAt
     }
     
@@ -97,6 +98,7 @@ struct User: Identifiable, Codable {
         certIssueDate = try container.decodeIfPresent(String.self, forKey: .certIssueDate)
         certExpiryDate = try container.decodeIfPresent(String.self, forKey: .certExpiryDate)
         certPhotoUrl = try container.decodeIfPresent(String.self, forKey: .certPhotoUrl)
+        certPhotoBackUrl = try container.decodeIfPresent(String.self, forKey: .certPhotoBackUrl)
         isArchived = try container.decodeIfPresent(Bool.self, forKey: .isArchived)
         isPending = try container.decodeIfPresent(Bool.self, forKey: .isPending)
         nacionalidade = try container.decodeIfPresent(String.self, forKey: .nacionalidade)
