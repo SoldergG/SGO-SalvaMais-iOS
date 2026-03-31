@@ -63,11 +63,14 @@ struct User: Identifiable, Codable {
     var sexo: String?
     var morada: String?
     var dataNascimento: String?
-    
+    var privacyPolicyAccepted: Bool?
+    var privacyPolicyAcceptedAt: String?
+
     enum CodingKeys: String, CodingKey {
         case id, name, email, phone, role, entidade, entidadeIds, servicoIds
         case coordinatorId, nif, certNumber, certIssueDate, certExpiryDate
         case certPhotoUrl, isArchived, isPending, nacionalidade, sexo, morada, dataNascimento
+        case privacyPolicyAccepted, privacyPolicyAcceptedAt
     }
     
     // Handle _id from MongoDB
@@ -100,6 +103,8 @@ struct User: Identifiable, Codable {
         sexo = try container.decodeIfPresent(String.self, forKey: .sexo)
         morada = try container.decodeIfPresent(String.self, forKey: .morada)
         dataNascimento = try container.decodeIfPresent(String.self, forKey: .dataNascimento)
+        privacyPolicyAccepted = try container.decodeIfPresent(Bool.self, forKey: .privacyPolicyAccepted)
+        privacyPolicyAcceptedAt = try container.decodeIfPresent(String.self, forKey: .privacyPolicyAcceptedAt)
     }
     
     /// Whether the user's ISN certification is expiring soon (within 90 days)
