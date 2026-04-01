@@ -632,13 +632,11 @@ struct CardPhotoButton: View {
     @Binding var isUploading: Bool
     let onSelected: (UIImage) async -> Void
 
-    @State private var showActionSheet = false
-    @State private var showGallery = false
     @State private var showCamera = false
     @State private var showCameraPermissionAlert = false
 
     var body: some View {
-        Button { showActionSheet = true } label: {
+        Button { requestCameraAccess() } label: {
             ZStack {
                 RoundedRectangle(cornerRadius: 16)
                     .strokeBorder(
@@ -687,16 +685,6 @@ struct CardPhotoButton: View {
             .frame(height: 110)
         }
         .buttonStyle(.plain)
-        // Escolha: câmera ou galeria
-        .confirmationDialog("Adicionar foto do cartão", isPresented: $showActionSheet, titleVisibility: .visible) {
-            Button("Tirar Foto") { requestCameraAccess() }
-            Button("Escolher da Galeria") { showGallery = true }
-            Button("Cancelar", role: .cancel) {}
-        }
-        // Galeria
-        .sheet(isPresented: $showGallery) {
-            PHPickerRepresentable { handle($0) }
-        }
         // Câmera
         .sheet(isPresented: $showCamera) {
             CameraPickerRepresentable { handle($0) }
