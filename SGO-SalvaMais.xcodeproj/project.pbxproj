@@ -31,6 +31,9 @@
 		A1000022 /* ISNReportFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000022 /* ISNReportFormView.swift */; };
 		A1000023 /* ISNReportFormPage1.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000023 /* ISNReportFormPage1.swift */; };
 		A1000024 /* ISNReportFormPage2.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000024 /* ISNReportFormPage2.swift */; };
+		A1000025 /* InventoryOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000025 /* InventoryOverviewView.swift */; };
+		A1000026 /* EstatisticasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000026 /* EstatisticasView.swift */; };
+		A1000027 /* ComplianceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000027 /* ComplianceView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,6 +62,9 @@
 		A2000022 /* ISNReportFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ISNReportFormView.swift; sourceTree = "<group>"; };
 		A2000023 /* ISNReportFormPage1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ISNReportFormPage1.swift; sourceTree = "<group>"; };
 		A2000024 /* ISNReportFormPage2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ISNReportFormPage2.swift; sourceTree = "<group>"; };
+		A2000025 /* InventoryOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryOverviewView.swift; sourceTree = "<group>"; };
+		A2000026 /* EstatisticasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EstatisticasView.swift; sourceTree = "<group>"; };
+		A2000027 /* ComplianceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplianceView.swift; sourceTree = "<group>"; };
 		A3000001 /* SGO-SalvaMais.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SGO-SalvaMais.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -139,6 +145,9 @@
 				A2000022 /* ISNReportFormView.swift */,
 				A2000023 /* ISNReportFormPage1.swift */,
 				A2000024 /* ISNReportFormPage2.swift */,
+				A2000025 /* InventoryOverviewView.swift */,
+				A2000026 /* EstatisticasView.swift */,
+				A2000027 /* ComplianceView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -230,6 +239,9 @@
 				A1000022 /* ISNReportFormView.swift in Sources */,
 				A1000023 /* ISNReportFormPage1.swift in Sources */,
 				A1000024 /* ISNReportFormPage2.swift in Sources */,
+				A1000025 /* InventoryOverviewView.swift in Sources */,
+				A1000026 /* EstatisticasView.swift in Sources */,
+				A1000027 /* ComplianceView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

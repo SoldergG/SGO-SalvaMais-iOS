@@ -5,47 +5,42 @@ import SwiftUI
 struct DashboardView: View {
     @EnvironmentObject var authVM: AuthViewModel
     @EnvironmentObject var dashboardVM: DashboardViewModel
-    @EnvironmentObject var servicosVM: ServicosViewModel
     @State private var showNotifications = false
     @State private var showReportSheet = false
     @State private var selectedReportType: ReportType?
     @State private var selectedISNReportType: ReportType?
     @State private var animateStats = false
-    @State private var showGestaoPostos = false
-    @State private var showEscalasAgenda = false
-    @State private var showInventario = false
-    @State private var showEstatisticas = false
-    @State private var showComplianceRH = false
-
+    
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.sgoAmber.ignoresSafeArea()
-
+                
+                // Ambient blobs
                 Circle()
                     .fill(Color.sgoRed.opacity(0.04))
                     .blur(radius: 80)
                     .frame(width: 250, height: 250)
                     .offset(x: -100, y: -200)
                     .ignoresSafeArea()
-
+                
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 20) {
                         // Stats Row
                         if authVM.isManager || authVM.isCliente {
                             statsSection
                         }
-
+                        
                         // ISN Reports (not for clients)
                         if !authVM.isCliente {
                             isnReportsSection
                         }
-
+                        
                         // Internal Occurrences (not for clients)
                         if !authVM.isCliente {
                             internalSection
                         }
-
+                        
                         // Tools Grid
                         toolsSection
                     }
@@ -73,14 +68,14 @@ struct DashboardView: View {
                             .foregroundColor(.sgoRed)
                     }
                 }
-
+                
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 8) {
                         // Connection indicator
                         Circle()
                             .fill(authVM.isOnline ? Color.sgoGreen : Color.sgoRed)
                             .frame(width: 6, height: 6)
-
+                        
                         // Notifications
                         Button {
                             showNotifications = true
@@ -89,7 +84,7 @@ struct DashboardView: View {
                                 Image(systemName: "bell.fill")
                                     .font(.system(size: 16))
                                     .foregroundColor(.sgoBlack)
-
+                                
                                 if dashboardVM.unreadNotifications > 0 {
                                     Circle()
                                         .fill(Color.sgoRed)
@@ -121,29 +116,6 @@ struct DashboardView: View {
                     .environmentObject(authVM)
                     .environmentObject(dashboardVM)
             }
-            .sheet(isPresented: $showGestaoPostos) {
-                ServicosListView()
-                    .environmentObject(servicosVM)
-                    .environmentObject(authVM)
-            }
-            .sheet(isPresented: $showEscalasAgenda) {
-                CalendarView()
-                    .environmentObject(servicosVM)
-                    .environmentObject(authVM)
-            }
-            .sheet(isPresented: $showInventario) {
-                InventoryOverviewView()
-                    .environmentObject(dashboardVM)
-            }
-            .sheet(isPresented: $showEstatisticas) {
-                EstatisticasView()
-                    .environmentObject(dashboardVM)
-            }
-            .sheet(isPresented: $showComplianceRH) {
-                ComplianceView()
-                    .environmentObject(dashboardVM)
-                    .environmentObject(authVM)
-            }
             .onAppear {
                 withAnimation(.easeOut(duration: 0.5).delay(0.2)) {
                     animateStats = true
@@ -152,24 +124,24 @@ struct DashboardView: View {
             }
         }
     }
-
+    
     // MARK: - Stats Section
-
+    
     private var statsSection: some View {
         HStack(spacing: 10) {
             // Active Posts — black card
             Button {
-                showGestaoPostos = true
+                // Navigate to servicos
             } label: {
                 VStack(spacing: 8) {
                     Text("🏢")
                         .font(.system(size: 22))
-
+                    
                     Text("\(dashboardVM.activeServicos.count)")
                         .font(.system(size: 42, weight: .ultraLight))
                         .tracking(-2)
                         .foregroundColor(.white)
-
+                    
                     Text("Postos Ativos")
                         .font(.system(size: 8, weight: .black))
                         .foregroundColor(.sgoRed)
@@ -187,7 +159,7 @@ struct DashboardView: View {
             .buttonStyle(.plain)
             .scaleEffect(animateStats ? 1 : 0.85)
             .opacity(animateStats ? 1 : 0)
-
+            
             SGOStatCard(
                 value: "\(authVM.isHighLevel ? dashboardVM.lifeguardCount : dashboardVM.activeServicos.flatMap { $0.lifeguardIds }.count)",
                 label: "Profissionais",
@@ -196,7 +168,7 @@ struct DashboardView: View {
             )
             .scaleEffect(animateStats ? 1 : 0.85)
             .opacity(animateStats ? 1 : 0)
-
+            
             SGOStatCard(
                 value: "\(dashboardVM.reports.count)",
                 label: "Total Registos",
@@ -207,13 +179,13 @@ struct DashboardView: View {
             .opacity(animateStats ? 1 : 0)
         }
     }
-
+    
     // MARK: - ISN Reports
-
+    
     private var isnReportsSection: some View {
         VStack(spacing: 14) {
             SGOSectionHeader(title: "Registo de Salvamento", subtitle: "Submissão Oficial ISN")
-
+            
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                 ForEach(ReportType.isnTypes, id: \.self) { type in
                     Button {
@@ -222,7 +194,7 @@ struct DashboardView: View {
                         VStack(alignment: .leading, spacing: 10) {
                             Text(type.icon)
                                 .font(.system(size: 28))
-
+                            
                             Text(type.displayName)
                                 .font(.system(size: 11, weight: .black))
                                 .foregroundColor(.sgoTextPrimary)
@@ -239,13 +211,13 @@ struct DashboardView: View {
             }
         }
     }
-
+    
     // MARK: - Internal Section
-
+    
     private var internalSection: some View {
         VStack(spacing: 14) {
             SGOSectionHeader(title: "Ocorrências Internas", subtitle: "Procedimentos de Posto", color: .sgoBlack)
-
+            
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                 ForEach(ReportType.internalTypes, id: \.self) { type in
                     Button {
@@ -254,7 +226,7 @@ struct DashboardView: View {
                         VStack(alignment: .leading, spacing: 10) {
                             Text(type.icon)
                                 .font(.system(size: 28))
-
+                            
                             Text(type.displayName)
                                 .font(.system(size: 11, weight: .black))
                                 .foregroundColor(.sgoTextPrimary)
@@ -271,46 +243,38 @@ struct DashboardView: View {
             }
         }
     }
-
+    
     // MARK: - Tools Section
-
+    
     private var toolsSection: some View {
         VStack(spacing: 14) {
             SGOSectionHeader(title: "Ferramentas e Gestão", subtitle: nil, color: .sgoTextMuted)
-
+            
             VStack(spacing: 10) {
                 SGOToolCard(title: "Site Institucional", subtitle: "Portal Salva Mais", icon: "🌐") {
                     if let url = URL(string: "https://www.salvamais.pt") {
                         UIApplication.shared.open(url)
                     }
                 }
-
+                
                 if authVM.isManager {
-                    SGOToolCard(title: "Gestão de Postos", subtitle: "Unidades Salva+", icon: "🏢") {
-                        showGestaoPostos = true
-                    }
+                    SGOToolCard(title: "Gestão de Postos", subtitle: "Unidades Salva+", icon: "🏢") {}
                 }
-
-                SGOToolCard(title: "Escalas & Agenda", subtitle: "Planeamento Mensal", icon: "📅") {
-                    showEscalasAgenda = true
-                }
-
-                SGOToolCard(title: "Estado Inventário", subtitle: "Equipamento Ativo", icon: "📦") {
-                    showInventario = true
-                }
-
+                
+                SGOToolCard(title: "Escalas & Agenda", subtitle: "Planeamento Mensal", icon: "📅") {}
+                
+                SGOToolCard(title: "Estado Inventário", subtitle: "Equipamento Ativo", icon: "📦") {}
+                
                 SGOToolCard(title: "Site ISN", subtitle: "Regras & Exames", icon: "🏖️") {
                     if let url = URL(string: "https://www.amn.pt/ISN") {
                         UIApplication.shared.open(url)
                     }
                 }
-
+                
                 if authVM.isHighLevel || authVM.isCliente {
-                    SGOToolCard(title: "Estatísticas Globais", subtitle: "Análise de Época", icon: "📊") {
-                        showEstatisticas = true
-                    }
+                    SGOToolCard(title: "Estatísticas Globais", subtitle: "Análise de Época", icon: "📊") {}
                 }
-
+                
                 if authVM.isManager {
                     SGOToolCard(
                         title: "Compliance RH",
@@ -318,9 +282,7 @@ struct DashboardView: View {
                         icon: "🛡️",
                         statusLabel: dashboardVM.complianceAlerts.isEmpty ? "OK" : "\(dashboardVM.complianceAlerts.count) Alertas",
                         statusColor: dashboardVM.complianceAlerts.isEmpty ? .sgoGreen : .sgoRed
-                    ) {
-                        showComplianceRH = true
-                    }
+                    ) {}
                 }
             }
         }

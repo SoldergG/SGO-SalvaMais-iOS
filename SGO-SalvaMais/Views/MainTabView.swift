@@ -12,7 +12,6 @@ struct MainTabView: View {
         TabView(selection: $selectedTab) {
             DashboardView()
                 .environmentObject(dashboardVM)
-                .environmentObject(servicosVM)
                 .tabItem {
                     Label("Dashboard", systemImage: "square.grid.2x2.fill")
                 }
