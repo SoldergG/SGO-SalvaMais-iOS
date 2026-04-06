@@ -38,11 +38,11 @@ struct LicencaISNView: View {
 
                                 infoRow(icon: "person.fill", label: "Nome", value: user.name)
                                 Divider().opacity(0.2)
-                                infoRow(icon: "number", label: "Nº Cédula", value: user.certificationNumber ?? "—")
+                                infoRow(icon: "number", label: "Nº Cédula", value: user.certNumber ?? "—")
                                 Divider().opacity(0.2)
-                                infoRow(icon: "calendar", label: "Emissão", value: user.certificationIssueDate ?? "—")
+                                infoRow(icon: "calendar", label: "Emissão", value: user.certIssueDate ?? "—")
                                 Divider().opacity(0.2)
-                                infoRow(icon: "calendar.badge.exclamationmark", label: "Validade", value: user.certificationExpiryDate ?? "—")
+                                infoRow(icon: "calendar.badge.exclamationmark", label: "Validade", value: user.certExpiryDate ?? "—")
                             }
                             .padding(16)
                             .sgoGlassCard(cornerRadius: 20)
