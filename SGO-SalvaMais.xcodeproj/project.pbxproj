@@ -34,6 +34,15 @@
 		A1000025 /* InventoryOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000025 /* InventoryOverviewView.swift */; };
 		A1000026 /* EstatisticasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000026 /* EstatisticasView.swift */; };
 		A1000027 /* ComplianceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000027 /* ComplianceView.swift */; };
+		A1000028 /* MapaVigilanciaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000028 /* MapaVigilanciaView.swift */; };
+		A1000029 /* CronogramaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000029 /* CronogramaView.swift */; };
+		A1000030 /* FormacaoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000030 /* FormacaoView.swift */; };
+		A1000031 /* UtilizadoresView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000031 /* UtilizadoresView.swift */; };
+		A1000032 /* EntidadesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000032 /* EntidadesView.swift */; };
+		A1000033 /* LicencaISNView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000033 /* LicencaISNView.swift */; };
+		A1000034 /* InstrucoesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000034 /* InstrucoesView.swift */; };
+		A1000035 /* AvaliacaoServicoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000035 /* AvaliacaoServicoView.swift */; };
+		A1000036 /* DefinicoesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000036 /* DefinicoesView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -65,6 +74,15 @@
 		A2000025 /* InventoryOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryOverviewView.swift; sourceTree = "<group>"; };
 		A2000026 /* EstatisticasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EstatisticasView.swift; sourceTree = "<group>"; };
 		A2000027 /* ComplianceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplianceView.swift; sourceTree = "<group>"; };
+		A2000028 /* MapaVigilanciaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapaVigilanciaView.swift; sourceTree = "<group>"; };
+		A2000029 /* CronogramaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CronogramaView.swift; sourceTree = "<group>"; };
+		A2000030 /* FormacaoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormacaoView.swift; sourceTree = "<group>"; };
+		A2000031 /* UtilizadoresView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilizadoresView.swift; sourceTree = "<group>"; };
+		A2000032 /* EntidadesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntidadesView.swift; sourceTree = "<group>"; };
+		A2000033 /* LicencaISNView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicencaISNView.swift; sourceTree = "<group>"; };
+		A2000034 /* InstrucoesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstrucoesView.swift; sourceTree = "<group>"; };
+		A2000035 /* AvaliacaoServicoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvaliacaoServicoView.swift; sourceTree = "<group>"; };
+		A2000036 /* DefinicoesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefinicoesView.swift; sourceTree = "<group>"; };
 		A3000001 /* SGO-SalvaMais.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SGO-SalvaMais.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -148,6 +166,15 @@
 				A2000025 /* InventoryOverviewView.swift */,
 				A2000026 /* EstatisticasView.swift */,
 				A2000027 /* ComplianceView.swift */,
+				A2000028 /* MapaVigilanciaView.swift */,
+				A2000029 /* CronogramaView.swift */,
+				A2000030 /* FormacaoView.swift */,
+				A2000031 /* UtilizadoresView.swift */,
+				A2000032 /* EntidadesView.swift */,
+				A2000033 /* LicencaISNView.swift */,
+				A2000034 /* InstrucoesView.swift */,
+				A2000035 /* AvaliacaoServicoView.swift */,
+				A2000036 /* DefinicoesView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -242,6 +269,15 @@
 				A1000025 /* InventoryOverviewView.swift in Sources */,
 				A1000026 /* EstatisticasView.swift in Sources */,
 				A1000027 /* ComplianceView.swift in Sources */,
+				A1000028 /* MapaVigilanciaView.swift in Sources */,
+				A1000029 /* CronogramaView.swift in Sources */,
+				A1000030 /* FormacaoView.swift in Sources */,
+				A1000031 /* UtilizadoresView.swift in Sources */,
+				A1000032 /* EntidadesView.swift in Sources */,
+				A1000033 /* LicencaISNView.swift in Sources */,
+				A1000034 /* InstrucoesView.swift in Sources */,
+				A1000035 /* AvaliacaoServicoView.swift in Sources */,
+				A1000036 /* DefinicoesView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

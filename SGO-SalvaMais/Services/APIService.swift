@@ -156,8 +156,14 @@ class APIService {
         try await request("/notifications/\(id)", method: "DELETE")
     }
     
+    // MARK: - Entities
+
+    func getEntities() async throws -> [Entity] {
+        try await request("/entities")
+    }
+
     // MARK: - Evaluations
-    
+
     func getEvaluations() async throws -> [Evaluation] {
         try await request("/evaluations")
     }

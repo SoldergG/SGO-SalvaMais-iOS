@@ -150,3 +150,37 @@ struct Evaluation: Identifiable, Codable {
         wouldRehire = try container.decodeIfPresent(String.self, forKey: .wouldRehire) ?? ""
     }
 }
+
+// MARK: - Entity
+
+struct Entity: Identifiable, Codable {
+    let id: String
+    var name: String
+    var nif: String?
+    var contacto: String?
+    var email: String?
+    var morada: String?
+    var codigoPostal: String?
+    var distrito: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, nif, contacto, email, morada, codigoPostal, distrito
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if let idValue = try? container.decode(String.self, forKey: .id) {
+            id = idValue
+        } else {
+            let dyn = try decoder.container(keyedBy: DynamicCodingKeys.self)
+            id = (try? dyn.decode(String.self, forKey: DynamicCodingKeys(stringValue: "_id")!)) ?? UUID().uuidString
+        }
+        name = try container.decode(String.self, forKey: .name)
+        nif = try container.decodeIfPresent(String.self, forKey: .nif)
+        contacto = try container.decodeIfPresent(String.self, forKey: .contacto)
+        email = try container.decodeIfPresent(String.self, forKey: .email)
+        morada = try container.decodeIfPresent(String.self, forKey: .morada)
+        codigoPostal = try container.decodeIfPresent(String.self, forKey: .codigoPostal)
+        distrito = try container.decodeIfPresent(String.self, forKey: .distrito)
+    }
+}
