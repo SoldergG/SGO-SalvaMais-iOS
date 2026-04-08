@@ -9,6 +9,7 @@ struct LoginView: View {
     @State private var password = ""
     @State private var showRegister = false
     @State private var cardAppeared = false
+    @State private var showPassword = false
 
     var body: some View {
         ZStack {
@@ -74,8 +75,21 @@ struct LoginView: View {
                                     .font(.system(size: 14))
                                     .foregroundColor(.sgoTextMuted)
                                     .frame(width: 20)
-                                SecureField("Palavra-passe", text: $password)
-                                    .textContentType(.password)
+                                if showPassword {
+                                    TextField("Palavra-passe", text: $password)
+                                        .textContentType(.password)
+                                        .autocapitalization(.none)
+                                } else {
+                                    SecureField("Palavra-passe", text: $password)
+                                        .textContentType(.password)
+                                }
+                                Button {
+                                    showPassword.toggle()
+                                } label: {
+                                    Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.sgoTextMuted)
+                                }
                             }
                             .sgoGlassField()
                         }
@@ -193,8 +207,10 @@ struct RegisterView: View {
 
     // Section 3 – Credenciais ISN
     @State private var certNumber = ""
-    @State private var certIssueDate = ""
-    @State private var certExpiryDate = ""
+    @State private var certIssueDateValue = Date()
+    @State private var certExpiryDateValue = Calendar.current.date(byAdding: .year, value: 3, to: Date()) ?? Date()
+    @State private var showIssueDatePicker = false
+    @State private var showExpiryDatePicker = false
     @State private var certFrontImage: UIImage?
     @State private var certBackImage: UIImage?
     @State private var certPhotoUrl: String?
@@ -206,21 +222,48 @@ struct RegisterView: View {
     @State private var privacyAccepted = false
     @State private var showPrivacyPolicy = false
 
+    // Password visibility
+    @State private var showPassword = false
+    @State private var showConfirmPassword = false
+
+    // CAPTCHA
+    @State private var captchaNum1 = Int.random(in: 1...12)
+    @State private var captchaNum2 = Int.random(in: 1...12)
+    @State private var captchaInput = ""
+
     // State
     @State private var isRegistering = false
     @State private var successMessage: String?
     @State private var errorMessage: String?
 
     private let sexoOptions = ["Masculino", "Feminino", "Outro"]
-
     private var passwordsMatch: Bool { password == confirmPassword }
+
+    private var certIssueDate: String { dateToString(certIssueDateValue) }
+    private var certExpiryDate: String { dateToString(certExpiryDateValue) }
+
+    private func dateToString(_ d: Date) -> String {
+        let f = DateFormatter(); f.dateFormat = "dd/MM/yyyy"; return f.string(from: d)
+    }
+
+    private var isUnder18: Bool {
+        let f = DateFormatter()
+        f.dateFormat = "dd/MM/yyyy"
+        guard dataNascimento.count == 10, let birth = f.date(from: dataNascimento) else { return false }
+        let age = Calendar.current.dateComponents([.year], from: birth, to: Date()).year ?? 0
+        return age < 18
+    }
+
+    private var captchaExpected: Int { captchaNum1 + captchaNum2 }
+    private var captchaCorrect: Bool { Int(captchaInput) == captchaExpected }
 
     private var canSubmit: Bool {
         !name.isEmpty && !email.isEmpty && !phone.isEmpty &&
         password.count >= 8 && passwordsMatch && privacyAccepted && !isRegistering &&
-        !dataNascimento.isEmpty && !morada.isEmpty && !nif.isEmpty &&
-        !certNumber.isEmpty && !certIssueDate.isEmpty && !certExpiryDate.isEmpty &&
-        certPhotoUrl != nil && certPhotoBackUrl != nil
+        !dataNascimento.isEmpty && !isUnder18 && !morada.isEmpty &&
+        !certNumber.isEmpty &&
+        certPhotoUrl != nil && certPhotoBackUrl != nil &&
+        captchaCorrect
     }
 
     var body: some View {
@@ -318,8 +361,17 @@ struct RegisterView: View {
                                     .font(.system(size: 14))
                                     .foregroundColor(.sgoTextMuted)
                                     .frame(width: 20)
-                                SecureField("Password (mín. 8 caracteres)", text: $password)
-                                    .textContentType(.newPassword)
+                                if showPassword {
+                                    TextField("Password (mín. 8 caracteres)", text: $password)
+                                        .textContentType(.newPassword).autocapitalization(.none)
+                                } else {
+                                    SecureField("Password (mín. 8 caracteres)", text: $password)
+                                        .textContentType(.newPassword)
+                                }
+                                Button { showPassword.toggle() } label: {
+                                    Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
+                                        .font(.system(size: 14)).foregroundColor(.sgoTextMuted)
+                                }
                             }
                             .sgoGlassField()
 
@@ -328,8 +380,17 @@ struct RegisterView: View {
                                     .font(.system(size: 14))
                                     .foregroundColor(.sgoTextMuted)
                                     .frame(width: 20)
-                                SecureField("Confirmar password", text: $confirmPassword)
-                                    .textContentType(.newPassword)
+                                if showConfirmPassword {
+                                    TextField("Confirmar password", text: $confirmPassword)
+                                        .textContentType(.newPassword).autocapitalization(.none)
+                                } else {
+                                    SecureField("Confirmar password", text: $confirmPassword)
+                                        .textContentType(.newPassword)
+                                }
+                                Button { showConfirmPassword.toggle() } label: {
+                                    Image(systemName: showConfirmPassword ? "eye.slash.fill" : "eye.fill")
+                                        .font(.system(size: 14)).foregroundColor(.sgoTextMuted)
+                                }
                             }
                             .sgoGlassField()
                             .overlay(
@@ -352,29 +413,52 @@ struct RegisterView: View {
                         VStack(alignment: .leading, spacing: 14) {
                             SGOSectionHeader(title: "2. Dados Pessoais", color: .sgoOrange)
 
-                            HStack(spacing: 10) {
-                                HStack {
-                                    Image(systemName: "calendar")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.sgoTextMuted)
-                                        .frame(width: 20)
-                                    TextField("Nasc. (dd/mm/aaaa)", text: $dataNascimento)
-                                        .keyboardType(.numbersAndPunctuation)
-                                }
-                                .sgoGlassField()
+                            HStack {
+                                Image(systemName: "calendar")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.sgoTextMuted)
+                                    .frame(width: 20)
+                                TextField("Data de Nascimento (dd/mm/aaaa)", text: $dataNascimento)
+                                    .keyboardType(.numbersAndPunctuation)
+                            }
+                            .sgoGlassField()
+                            .overlay(
+                                isUnder18
+                                ? RoundedRectangle(cornerRadius: 20)
+                                    .stroke(Color.sgoRed.opacity(0.5), lineWidth: 1.5)
+                                : nil
+                            )
 
-                                HStack {
-                                    Image(systemName: "person.2.fill")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.sgoTextMuted)
-                                    Picker("Sexo", selection: $sexo) {
-                                        ForEach(sexoOptions, id: \.self) { Text($0) }
+                            if isUnder18 {
+                                Label("Apenas maiores de 18 anos podem registar-se.", systemImage: "exclamationmark.triangle.fill")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor(.sgoRed)
+                            }
+
+                            // Sexo – segmented buttons
+                            VStack(alignment: .leading, spacing: 6) {
+                                Label("Género", systemImage: "person.2.fill")
+                                    .font(.system(size: 10, weight: .black))
+                                    .tracking(1)
+                                    .foregroundColor(.sgoTextMuted)
+                                HStack(spacing: 8) {
+                                    ForEach(sexoOptions, id: \.self) { option in
+                                        Button {
+                                            sexo = option
+                                        } label: {
+                                            Text(option)
+                                                .font(.system(size: 12, weight: .bold))
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.vertical, 10)
+                                                .background(
+                                                    RoundedRectangle(cornerRadius: 14)
+                                                        .fill(sexo == option ? Color.sgoRed : Color.white.opacity(0.7))
+                                                )
+                                                .foregroundColor(sexo == option ? .white : .sgoTextSecondary)
+                                        }
+                                        .buttonStyle(.plain)
                                     }
-                                    .pickerStyle(.menu)
-                                    .font(.system(size: 13, weight: .bold))
-                                    .tint(.sgoTextPrimary)
                                 }
-                                .sgoGlassField()
                             }
 
                             HStack {
@@ -383,16 +467,6 @@ struct RegisterView: View {
                                     .foregroundColor(.sgoTextMuted)
                                     .frame(width: 20)
                                 TextField("Morada para contrato", text: $morada)
-                            }
-                            .sgoGlassField()
-
-                            HStack {
-                                Image(systemName: "creditcard.fill")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.sgoTextMuted)
-                                    .frame(width: 20)
-                                TextField("NIF", text: $nif)
-                                    .keyboardType(.numberPad)
                             }
                             .sgoGlassField()
                         }
@@ -412,26 +486,50 @@ struct RegisterView: View {
                             }
                             .sgoGlassField()
 
-                            HStack(spacing: 10) {
+                            // Date pickers for ISN
+                            Button { showIssueDatePicker.toggle() } label: {
                                 HStack {
                                     Image(systemName: "calendar.badge.plus")
-                                        .font(.system(size: 13))
-                                        .foregroundColor(.sgoTextMuted)
-                                        .frame(width: 20)
-                                    TextField("Emissão (dd/mm/aaaa)", text: $certIssueDate)
-                                        .keyboardType(.numbersAndPunctuation)
+                                        .font(.system(size: 13)).foregroundColor(.sgoTextMuted).frame(width: 20)
+                                    Text("Emissão: \(certIssueDate)")
+                                        .font(.system(size: 13)).foregroundColor(.sgoTextPrimary)
+                                    Spacer()
+                                    Image(systemName: "chevron.down")
+                                        .font(.system(size: 11)).foregroundColor(.sgoTextMuted)
                                 }
-                                .sgoGlassField()
+                            }
+                            .buttonStyle(.plain)
+                            .sgoGlassField()
 
+                            if showIssueDatePicker {
+                                DatePicker("", selection: $certIssueDateValue, displayedComponents: .date)
+                                    .datePickerStyle(.graphical)
+                                    .tint(.sgoRed)
+                                    .padding(12)
+                                    .sgoGlassCard(cornerRadius: 20)
+                            }
+
+                            Button { showExpiryDatePicker.toggle() } label: {
                                 HStack {
                                     Image(systemName: "calendar.badge.exclamationmark")
+                                        .font(.system(size: 13)).foregroundColor(.sgoTextMuted).frame(width: 20)
+                                    Text("Validade: \(certExpiryDate)")
                                         .font(.system(size: 13))
-                                        .foregroundColor(.sgoTextMuted)
-                                        .frame(width: 20)
-                                    TextField("Validade (dd/mm/aaaa)", text: $certExpiryDate)
-                                        .keyboardType(.numbersAndPunctuation)
+                                        .foregroundColor(certExpiryDateValue < Date() ? .sgoRed : .sgoTextPrimary)
+                                    Spacer()
+                                    Image(systemName: "chevron.down")
+                                        .font(.system(size: 11)).foregroundColor(.sgoTextMuted)
                                 }
-                                .sgoGlassField()
+                            }
+                            .buttonStyle(.plain)
+                            .sgoGlassField()
+
+                            if showExpiryDatePicker {
+                                DatePicker("", selection: $certExpiryDateValue, displayedComponents: .date)
+                                    .datePickerStyle(.graphical)
+                                    .tint(.sgoRed)
+                                    .padding(12)
+                                    .sgoGlassCard(cornerRadius: 20)
                             }
 
                             // Fotos do Cartão ISN
@@ -504,6 +602,84 @@ struct RegisterView: View {
                                 }
                                 .foregroundColor(.sgoPurple)
                                 .underline()
+                            }
+                        }
+                        .padding(20)
+                        .sgoGlassCard(cornerRadius: 24)
+
+                        // CAPTCHA
+                        VStack(alignment: .leading, spacing: 14) {
+                            SGOSectionHeader(title: "Verificação de Segurança", color: .sgoGreen)
+
+                            VStack(spacing: 10) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "shield.checkered")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.sgoGreen)
+                                    Text("Prove que não é um robô")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(.sgoTextSecondary)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                                HStack(spacing: 12) {
+                                    Text("Quanto é  \(captchaNum1) + \(captchaNum2) ?")
+                                        .font(.system(size: 18, weight: .black, design: .monospaced))
+                                        .foregroundColor(.sgoTextPrimary)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 12)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .fill(Color.sgoGreen.opacity(0.08))
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 16)
+                                                        .stroke(Color.sgoGreen.opacity(0.25), lineWidth: 1.5)
+                                                )
+                                        )
+
+                                    HStack {
+                                        Image(systemName: "equal")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.sgoTextMuted)
+                                            .frame(width: 20)
+                                        TextField("Resposta", text: $captchaInput)
+                                            .keyboardType(.numberPad)
+                                            .multilineTextAlignment(.center)
+                                            .font(.system(size: 16, weight: .bold))
+                                    }
+                                    .sgoGlassField()
+                                    .frame(maxWidth: 120)
+                                    .overlay(
+                                        !captchaInput.isEmpty
+                                        ? RoundedRectangle(cornerRadius: 20)
+                                            .stroke(captchaCorrect ? Color.sgoGreen.opacity(0.5) : Color.sgoRed.opacity(0.4), lineWidth: 1.5)
+                                        : nil
+                                    )
+                                }
+
+                                if !captchaInput.isEmpty {
+                                    Label(
+                                        captchaCorrect ? "Verificação concluída!" : "Resposta incorreta. Tente novamente.",
+                                        systemImage: captchaCorrect ? "checkmark.circle.fill" : "xmark.circle.fill"
+                                    )
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor(captchaCorrect ? .sgoGreen : .sgoRed)
+                                }
+
+                                Button {
+                                    captchaNum1 = Int.random(in: 1...12)
+                                    captchaNum2 = Int.random(in: 1...12)
+                                    captchaInput = ""
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "arrow.clockwise")
+                                            .font(.system(size: 11))
+                                        Text("NOVA QUESTÃO")
+                                            .font(.system(size: 10, weight: .black))
+                                            .tracking(1.5)
+                                    }
+                                    .foregroundColor(.sgoTextMuted)
+                                }
                             }
                         }
                         .padding(20)
@@ -604,12 +780,11 @@ struct RegisterView: View {
         ]
 
         if !dataNascimento.isEmpty { userData["dataNascimento"] = dataNascimento }
-        if !sexo.isEmpty            { userData["sexo"] = sexo }
-        if !morada.isEmpty          { userData["morada"] = morada }
-        if !nif.isEmpty             { userData["nif"] = nif }
-        if !certNumber.isEmpty      { userData["certNumber"] = certNumber }
-        if !certIssueDate.isEmpty   { userData["certIssueDate"] = certIssueDate }
-        if !certExpiryDate.isEmpty  { userData["certExpiryDate"] = certExpiryDate }
+        if !sexo.isEmpty           { userData["sexo"] = sexo }
+        if !morada.isEmpty         { userData["morada"] = morada }
+        if !certNumber.isEmpty     { userData["certNumber"] = certNumber }
+        userData["certIssueDate"]  = certIssueDate
+        userData["certExpiryDate"] = certExpiryDate
         if let url = certPhotoUrl   { userData["certPhotoUrl"] = url }
         if let url = certPhotoBackUrl { userData["certPhotoBackUrl"] = url }
 
@@ -628,17 +803,22 @@ struct RegisterView: View {
 
 // MARK: - Card Photo Button
 
+import PhotosUI
+
 struct CardPhotoButton: View {
     let label: String
     @Binding var image: UIImage?
     @Binding var isUploading: Bool
     let onSelected: (UIImage) async -> Void
 
+    @State private var showActionSheet = false
+    @State private var showPhotoPicker = false
     @State private var showCamera = false
     @State private var showCameraPermissionAlert = false
+    @State private var photoPickerItem: PhotosPickerItem?
 
     var body: some View {
-        Button { requestCameraAccess() } label: {
+        Button { showActionSheet = true } label: {
             ZStack {
                 RoundedRectangle(cornerRadius: 16)
                     .strokeBorder(
@@ -649,50 +829,52 @@ struct CardPhotoButton: View {
                         RoundedRectangle(cornerRadius: 16)
                             .fill(image != nil ? Color.blue.opacity(0.05) : Color(UIColor.systemGray6).opacity(0.4))
                     )
-
                 if isUploading {
                     VStack(spacing: 6) {
                         ProgressView().tint(.blue)
-                        Text("A carregar...")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundColor(.sgoTextMuted)
+                        Text("A carregar...").font(.system(size: 9, weight: .bold)).foregroundColor(.sgoTextMuted)
                     }
                 } else if let img = image {
                     ZStack(alignment: .topTrailing) {
-                        Image(uiImage: img)
-                            .resizable()
-                            .scaledToFill()
+                        Image(uiImage: img).resizable().scaledToFill()
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .clipShape(RoundedRectangle(cornerRadius: 15))
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(.sgoGreen)
-                            .padding(6)
+                            .font(.system(size: 16)).foregroundColor(.sgoGreen).padding(6)
                     }
                 } else {
                     VStack(spacing: 8) {
-                        Image(systemName: "camera.fill")
-                            .font(.system(size: 22))
-                            .foregroundColor(.sgoTextMuted)
-                        Text(label)
-                            .font(.system(size: 8, weight: .black))
-                            .tracking(1)
-                            .foregroundColor(.sgoTextMuted)
-                            .multilineTextAlignment(.center)
+                        Image(systemName: "camera.fill").font(.system(size: 22)).foregroundColor(.sgoTextMuted)
+                        Text(label).font(.system(size: 8, weight: .black)).tracking(1)
+                            .foregroundColor(.sgoTextMuted).multilineTextAlignment(.center)
                     }
                     .padding(8)
                 }
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 110)
+            .frame(maxWidth: .infinity).frame(height: 110)
         }
         .buttonStyle(.plain)
-        // Câmera
-        .sheet(isPresented: $showCamera) {
-            CameraPickerRepresentable { handle($0) }
-                .ignoresSafeArea()
+        .confirmationDialog("Foto do Cartão ISN", isPresented: $showActionSheet, titleVisibility: .visible) {
+            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                Button("Tirar Foto") { requestCameraAccess() }
+            }
+            Button("Escolher da Galeria") { showPhotoPicker = true }
+            Button("Cancelar", role: .cancel) {}
         }
-        // Permissão de câmera negada
+        .photosPicker(isPresented: $showPhotoPicker, selection: $photoPickerItem,
+                      matching: .images, photoLibrary: .shared())
+        .onChange(of: photoPickerItem) { _, newItem in
+            guard let newItem else { return }
+            Task {
+                if let data = try? await newItem.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    await MainActor.run { handle(uiImage) }
+                }
+            }
+        }
+        .sheet(isPresented: $showCamera) {
+            CameraPickerRepresentable { handle($0) }.ignoresSafeArea()
+        }
         .alert("Acesso à Câmera Bloqueado", isPresented: $showCameraPermissionAlert) {
             Button("Abrir Definições") {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
@@ -701,7 +883,7 @@ struct CardPhotoButton: View {
             }
             Button("Cancelar", role: .cancel) {}
         } message: {
-            Text("Para tirar fotos do cartão ISN, permite o acesso à câmera nas Definições do iPhone.")
+            Text("Para tirar fotos, permite o acesso à câmera nas Definições do iPhone.")
         }
     }
 
@@ -710,25 +892,23 @@ struct CardPhotoButton: View {
         isUploading = true
         Task {
             await onSelected(selected)
-            isUploading = false
+            await MainActor.run { isUploading = false }
         }
     }
 
     private func requestCameraAccess() {
+        guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
+            showPhotoPicker = true; return
+        }
         switch AVCaptureDevice.authorizationStatus(for: .video) {
-        case .authorized:
-            showCamera = true
+        case .authorized: showCamera = true
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: .video) { granted in
                 DispatchQueue.main.async {
-                    if granted { showCamera = true }
-                    else { showCameraPermissionAlert = true }
+                    if granted { showCamera = true } else { showCameraPermissionAlert = true }
                 }
             }
-        case .denied, .restricted:
-            showCameraPermissionAlert = true
-        @unknown default:
-            showCameraPermissionAlert = true
+        default: showCameraPermissionAlert = true
         }
     }
 }
@@ -740,7 +920,7 @@ struct CameraPickerRepresentable: UIViewControllerRepresentable {
 
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
-        picker.sourceType = .camera
+        picker.sourceType = UIImagePickerController.isSourceTypeAvailable(.camera) ? .camera : .photoLibrary
         picker.allowsEditing = false
         picker.delegate = context.coordinator
         return picker
@@ -756,7 +936,7 @@ struct CameraPickerRepresentable: UIViewControllerRepresentable {
         func imagePickerController(_ picker: UIImagePickerController,
                                    didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
             picker.dismiss(animated: true)
-            if let image = info[.originalImage] as? UIImage {
+            if let image = info[.editedImage] as? UIImage ?? info[.originalImage] as? UIImage {
                 parent.onImageSelected(image)
             }
         }
