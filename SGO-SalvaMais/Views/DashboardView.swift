@@ -132,6 +132,7 @@ struct DashboardView: View {
             }
             .sheet(isPresented: $showInventario) {
                 InventoryOverviewView()
+                    .environmentObject(dashboardVM)
                     .environmentObject(servicosVM)
                     .environmentObject(authVM)
             }
@@ -152,6 +153,7 @@ struct DashboardView: View {
             }
             .sheet(isPresented: $showCronograma) {
                 CronogramaView()
+                    .environmentObject(dashboardVM)
                     .environmentObject(servicosVM)
                     .environmentObject(authVM)
             }
@@ -165,6 +167,7 @@ struct DashboardView: View {
             }
             .sheet(isPresented: $showEntidades) {
                 EntidadesView()
+                    .environmentObject(authVM)
             }
             .sheet(isPresented: $showLicenca) {
                 LicencaISNView()

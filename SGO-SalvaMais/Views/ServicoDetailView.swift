@@ -3,43 +3,28 @@ import SwiftUI
 // MARK: - Servico Detail View
 
 struct ServicoDetailView: View {
-    let servico: Servico
+    @State var servico: Servico
     @EnvironmentObject var authVM: AuthViewModel
     @EnvironmentObject var servicosVM: ServicosViewModel
     @Environment(\.dismiss) var dismiss
-    
+
+    @State private var showEditSheet = false
+
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.sgoAmber.ignoresSafeArea()
-                
+
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 16) {
-                        // Header
                         headerSection
-                        
-                        // Info Grid
                         infoGrid
-                        
-                        // Schedule
-                        if servico.weeklySchedule != nil {
-                            scheduleSection
-                        }
-                        
-                        // Team
+                        if servico.weeklySchedule != nil { scheduleSection }
                         teamSection
-                        
-                        // Manager Info
-                        if let gestor = servico.gestorNome, !gestor.isEmpty {
-                            managerSection
-                        }
-                        
-                        // Inventory
+                        if let gestor = servico.gestorNome, !gestor.isEmpty { managerSection }
                         inventorySection
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 60)
-                    .padding(.top, 10)
+                    .padding(.horizontal, 16).padding(.bottom, 60).padding(.top, 10)
                 }
             }
             .navigationTitle(servico.name)
@@ -49,10 +34,24 @@ struct ServicoDetailView: View {
                     Button { dismiss() } label: {
                         Image(systemName: "xmark")
                             .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.sgoTextSecondary)
-                            .padding(10)
+                            .foregroundColor(.sgoTextSecondary).padding(10)
                             .background(Circle().fill(Color(UIColor.systemGray6)))
                     }
+                }
+                if authVM.isManager {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            showEditSheet = true
+                        } label: {
+                            Image(systemName: "pencil.circle.fill")
+                                .font(.system(size: 18)).foregroundColor(.sgoRed)
+                        }
+                    }
+                }
+            }
+            .sheet(isPresented: $showEditSheet) {
+                EditServicoSheet(servico: servico) { updated in
+                    servico = updated
                 }
             }
             .task {
@@ -301,7 +300,7 @@ struct ScheduleRow: View {
 struct InfoRow: View {
     let label: String
     let value: String
-    
+
     var body: some View {
         HStack {
             Text(label)
@@ -314,5 +313,179 @@ struct InfoRow: View {
                 .font(.system(size: 13, weight: .bold))
                 .foregroundColor(.sgoTextPrimary)
         }
+    }
+}
+
+// MARK: - Edit Servico Sheet
+
+struct EditServicoSheet: View {
+    let servico: Servico
+    let onSave: (Servico) -> Void
+    @Environment(\.dismiss) var dismiss
+
+    @State private var name: String
+    @State private var location: String
+    @State private var distrito: String
+    @State private var tipologiaAguas: String
+    @State private var status: ServicoStatus
+    @State private var startDate: String
+    @State private var endDate: String
+    @State private var gestorNome: String
+    @State private var gestorEmail: String
+    @State private var gestorTelemovel: String
+    @State private var description: String
+    @State private var isSaving = false
+    @State private var errorMessage: String?
+
+    init(servico: Servico, onSave: @escaping (Servico) -> Void) {
+        self.servico = servico
+        self.onSave = onSave
+        _name = State(initialValue: servico.name)
+        _location = State(initialValue: servico.location)
+        _distrito = State(initialValue: servico.distrito ?? "")
+        _tipologiaAguas = State(initialValue: servico.tipologiaAguas)
+        _status = State(initialValue: servico.status)
+        _startDate = State(initialValue: String(servico.startDate.prefix(10)))
+        _endDate = State(initialValue: String(servico.endDate.prefix(10)))
+        _gestorNome = State(initialValue: servico.gestorNome ?? "")
+        _gestorEmail = State(initialValue: servico.gestorEmail ?? "")
+        _gestorTelemovel = State(initialValue: servico.gestorTelemovel ?? "")
+        _description = State(initialValue: servico.description)
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.sgoAmber.ignoresSafeArea()
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 16) {
+                        groupCard("IDENTIFICAÇÃO") {
+                            editField(icon: "building.2.fill", placeholder: "Nome do Posto *", text: $name)
+                            Divider().opacity(0.2)
+                            editField(icon: "mappin.circle.fill", placeholder: "Localização", text: $location)
+                            Divider().opacity(0.2)
+                            editField(icon: "map.fill", placeholder: "Distrito", text: $distrito)
+                            Divider().opacity(0.2)
+                            editField(icon: "water.waves", placeholder: "Tipologia de Águas", text: $tipologiaAguas)
+                        }
+
+                        groupCard("ESTADO E DATAS") {
+                            HStack(spacing: 12) {
+                                Image(systemName: "checkmark.circle.fill").font(.system(size: 15))
+                                    .foregroundColor(.sgoRed).frame(width: 24)
+                                Text("Estado").font(.system(size: 13)).foregroundColor(.sgoTextPrimary)
+                                Spacer()
+                                Picker("Estado", selection: $status) {
+                                    ForEach([ServicoStatus.ativo, .inativo, .concluido], id: \.self) { s in
+                                        Text(s.rawValue).tag(s)
+                                    }
+                                }
+                                .pickerStyle(.menu).tint(.sgoRed)
+                            }
+                            .padding(.vertical, 6)
+                            Divider().opacity(0.2)
+                            editField(icon: "calendar", placeholder: "Data Início (yyyy-MM-dd)", text: $startDate)
+                            Divider().opacity(0.2)
+                            editField(icon: "calendar.badge.clock", placeholder: "Data Fim (yyyy-MM-dd)", text: $endDate)
+                        }
+
+                        groupCard("GESTOR RESPONSÁVEL") {
+                            editField(icon: "person.fill", placeholder: "Nome do Gestor", text: $gestorNome)
+                            Divider().opacity(0.2)
+                            editField(icon: "envelope.fill", placeholder: "Email do Gestor", text: $gestorEmail)
+                                .keyboardType(.emailAddress).autocapitalization(.none)
+                            Divider().opacity(0.2)
+                            editField(icon: "phone.fill", placeholder: "Telemóvel do Gestor", text: $gestorTelemovel)
+                                .keyboardType(.phonePad)
+                        }
+
+                        groupCard("DESCRIÇÃO") {
+                            HStack(spacing: 12) {
+                                Image(systemName: "text.alignleft").font(.system(size: 15))
+                                    .foregroundColor(.sgoRed).frame(width: 24)
+                                TextField("Descrição do posto", text: $description, axis: .vertical)
+                                    .font(.system(size: 13)).lineLimit(3...6)
+                            }
+                            .padding(.vertical, 6)
+                        }
+
+                        if let err = errorMessage {
+                            HStack(spacing: 8) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                Text(err).font(.system(size: 12, weight: .bold))
+                            }
+                            .foregroundColor(.sgoRed)
+                            .padding(12).background(Capsule().fill(Color.sgoRed.opacity(0.08)))
+                        }
+
+                        Button {
+                            Task { await saveServico() }
+                        } label: {
+                            HStack {
+                                if isSaving {
+                                    ProgressView().tint(.white).scaleEffect(0.8)
+                                } else {
+                                    Text("Guardar Alterações")
+                                }
+                            }
+                            .frame(maxWidth: .infinity).sgoGlassButton()
+                        }
+                        .disabled(isSaving || name.isEmpty)
+                        .opacity(name.isEmpty ? 0.5 : 1)
+                    }
+                    .padding(.horizontal, 16).padding(.vertical, 16).padding(.bottom, 40)
+                }
+            }
+            .navigationTitle("Editar Posto")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancelar") { dismiss() }.foregroundColor(.sgoRed)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func groupCard<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(spacing: 0) {
+            Text(title).font(.system(size: 9, weight: .black)).tracking(2)
+                .foregroundColor(.sgoTextMuted)
+                .frame(maxWidth: .infinity, alignment: .leading).padding(.bottom, 8)
+            VStack(spacing: 14) { content() }
+                .padding(16).sgoGlassCard(cornerRadius: 18)
+        }
+    }
+
+    @ViewBuilder
+    private func editField(icon: String, placeholder: String, text: Binding<String>) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon).font(.system(size: 15))
+                .foregroundColor(.sgoRed).frame(width: 24)
+            TextField(placeholder, text: text)
+                .font(.system(size: 13)).foregroundColor(.sgoTextPrimary)
+        }
+        .padding(.vertical, 6)
+    }
+
+    private func saveServico() async {
+        isSaving = true; errorMessage = nil
+        var data: [String: Any] = [
+            "name": name, "location": location, "status": status.rawValue,
+            "startDate": startDate, "endDate": endDate, "description": description
+        ]
+        if !distrito.isEmpty { data["distrito"] = distrito }
+        if !tipologiaAguas.isEmpty { data["tipologiaAguas"] = tipologiaAguas }
+        if !gestorNome.isEmpty { data["gestorNome"] = gestorNome }
+        if !gestorEmail.isEmpty { data["gestorEmail"] = gestorEmail }
+        if !gestorTelemovel.isEmpty { data["gestorTelemovel"] = gestorTelemovel }
+        do {
+            let updated = try await APIService.shared.updateServico(id: servico.id, data: data)
+            onSave(updated)
+            dismiss()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isSaving = false
     }
 }

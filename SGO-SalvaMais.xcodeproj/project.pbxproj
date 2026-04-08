@@ -295,6 +295,9 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Salva+Go";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
+				INFOPLIST_KEY_NSCameraUsageDescription = "A S+GO precisa de acesso à câmera para fotografar o seu Cartão ISN.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "A S+GO pode guardar imagens relacionadas com o seu registo na galeria.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "A S+GO precisa de acesso à sua galeria de fotos para carregar imagens do seu Cartão ISN.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -321,6 +324,9 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Salva+Go";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
+				INFOPLIST_KEY_NSCameraUsageDescription = "A S+GO precisa de acesso à câmera para fotografar o seu Cartão ISN.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "A S+GO pode guardar imagens relacionadas com o seu registo na galeria.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "A S+GO precisa de acesso à sua galeria de fotos para carregar imagens do seu Cartão ISN.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

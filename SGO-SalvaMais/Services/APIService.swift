@@ -90,19 +90,31 @@ class APIService {
     }
     
     // MARK: - Users
-    
+
     func getAllUsers() async throws -> [User] {
         try await request("/users")
     }
+
+    func updateUser(id: String, data: [String: Any]) async throws -> User {
+        try await request("/users/\(id)", method: "PATCH", body: data)
+    }
     
     // MARK: - Servicos
-    
+
     func getServicos() async throws -> [Servico] {
         try await request("/servicos")
     }
-    
+
     func getServicoById(_ id: String) async throws -> Servico {
         try await request("/servicos/\(id)")
+    }
+
+    func createServico(_ data: [String: Any]) async throws -> Servico {
+        try await request("/servicos", method: "POST", body: data)
+    }
+
+    func updateServico(id: String, data: [String: Any]) async throws -> Servico {
+        try await request("/servicos/\(id)", method: "PATCH", body: data)
     }
     
     // MARK: - Reports
@@ -160,6 +172,28 @@ class APIService {
 
     func getEntities() async throws -> [Entity] {
         try await request("/entities")
+    }
+
+    func createEntity(_ data: [String: Any]) async throws -> Entity {
+        try await request("/entities", method: "POST", body: data)
+    }
+
+    func updateEntity(id: String, data: [String: Any]) async throws -> Entity {
+        try await request("/entities/\(id)", method: "PATCH", body: data)
+    }
+
+    // MARK: - Inventory CRUD
+
+    func addInventoryItem(_ data: [String: Any]) async throws -> InventoryItem {
+        try await request("/inventory", method: "POST", body: data)
+    }
+
+    func updateInventoryItem(id: String, data: [String: Any]) async throws -> InventoryItem {
+        try await request("/inventory/\(id)", method: "PATCH", body: data)
+    }
+
+    func deleteInventoryItem(_ id: String) async throws -> EmptyResponse {
+        try await request("/inventory/\(id)", method: "DELETE")
     }
 
     // MARK: - Evaluations

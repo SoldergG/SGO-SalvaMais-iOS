@@ -26,6 +26,13 @@ class AuthViewModel: ObservableObject {
         
         do {
             let loggedUser = try await APIService.shared.login(email: email, password: password)
+            if loggedUser.isPending == true {
+                errorMessage = "A sua conta está a aguardar validação. Receberá acesso após confirmação pelo Administrador, Gestor ou Coordenador."
+                isLoading = false
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.warning)
+                return
+            }
             user = loggedUser
             isAuthenticated = true
             saveUser(loggedUser)
