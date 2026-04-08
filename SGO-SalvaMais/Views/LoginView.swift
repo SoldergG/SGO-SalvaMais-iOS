@@ -200,10 +200,14 @@ struct RegisterView: View {
     @State private var confirmPassword = ""
 
     // Section 2 – Dados Pessoais
-    @State private var dataNascimento = ""
+    @State private var dataNascimentoValue = Calendar.current.date(byAdding: .year, value: -25, to: Date()) ?? Date()
+    @State private var showBirthDatePicker = false
     @State private var sexo = "Masculino"
     @State private var morada = ""
     @State private var nif = ""
+
+    private var dataNascimento: String { dateToString(dataNascimentoValue) }
+    private var maxBirthDate: Date { Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date() }
 
     // Section 3 – Credenciais ISN
     @State private var certNumber = ""
@@ -247,10 +251,7 @@ struct RegisterView: View {
     }
 
     private var isUnder18: Bool {
-        let f = DateFormatter()
-        f.dateFormat = "dd/MM/yyyy"
-        guard dataNascimento.count == 10, let birth = f.date(from: dataNascimento) else { return false }
-        let age = Calendar.current.dateComponents([.year], from: birth, to: Date()).year ?? 0
+        let age = Calendar.current.dateComponents([.year], from: dataNascimentoValue, to: Date()).year ?? 0
         return age < 18
     }
 
@@ -260,7 +261,7 @@ struct RegisterView: View {
     private var canSubmit: Bool {
         !name.isEmpty && !email.isEmpty && !phone.isEmpty &&
         password.count >= 8 && passwordsMatch && privacyAccepted && !isRegistering &&
-        !dataNascimento.isEmpty && !isUnder18 && !morada.isEmpty &&
+        !isUnder18 && !morada.isEmpty &&
         !certNumber.isEmpty &&
         certPhotoUrl != nil && certPhotoBackUrl != nil &&
         captchaCorrect
@@ -413,14 +414,19 @@ struct RegisterView: View {
                         VStack(alignment: .leading, spacing: 14) {
                             SGOSectionHeader(title: "2. Dados Pessoais", color: .sgoOrange)
 
-                            HStack {
-                                Image(systemName: "calendar")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(.sgoTextMuted)
-                                    .frame(width: 20)
-                                TextField("Data de Nascimento (dd/mm/aaaa)", text: $dataNascimento)
-                                    .keyboardType(.numbersAndPunctuation)
+                            Button { showBirthDatePicker.toggle() } label: {
+                                HStack {
+                                    Image(systemName: "birthday.cake")
+                                        .font(.system(size: 13)).foregroundColor(.sgoTextMuted).frame(width: 20)
+                                    Text("Nascimento: \(dataNascimento)")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(isUnder18 ? .sgoRed : .sgoTextPrimary)
+                                    Spacer()
+                                    Image(systemName: "chevron.down")
+                                        .font(.system(size: 11)).foregroundColor(.sgoTextMuted)
+                                }
                             }
+                            .buttonStyle(.plain)
                             .sgoGlassField()
                             .overlay(
                                 isUnder18
@@ -428,6 +434,22 @@ struct RegisterView: View {
                                     .stroke(Color.sgoRed.opacity(0.5), lineWidth: 1.5)
                                 : nil
                             )
+
+                            if showBirthDatePicker {
+                                DatePicker(
+                                    "",
+                                    selection: $dataNascimentoValue,
+                                    in: ...maxBirthDate,
+                                    displayedComponents: .date
+                                )
+                                .datePickerStyle(.graphical)
+                                .tint(.sgoOrange)
+                                .padding(12)
+                                .sgoGlassCard(cornerRadius: 20)
+                                .onChange(of: dataNascimentoValue) { _, _ in
+                                    showBirthDatePicker = false
+                                }
+                            }
 
                             if isUnder18 {
                                 Label("Apenas maiores de 18 anos podem registar-se.", systemImage: "exclamationmark.triangle.fill")
@@ -467,6 +489,16 @@ struct RegisterView: View {
                                     .foregroundColor(.sgoTextMuted)
                                     .frame(width: 20)
                                 TextField("Morada para contrato", text: $morada)
+                            }
+                            .sgoGlassField()
+
+                            HStack {
+                                Image(systemName: "number.square.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.sgoTextMuted)
+                                    .frame(width: 20)
+                                TextField("NIF (9 dígitos)", text: $nif)
+                                    .keyboardType(.numberPad)
                             }
                             .sgoGlassField()
                         }
@@ -769,19 +801,21 @@ struct RegisterView: View {
         isRegistering = true
         errorMessage = nil
 
+        let fullPhone = phone.hasPrefix("+") ? phone : "+351\(phone)"
         var userData: [String: Any] = [
             "name": name,
             "email": email,
-            "phone": phone,
+            "phone": fullPhone,
             "password": password,
             "role": Role.nadadorSalvador.rawValue,
             "privacyPolicyAccepted": true,
             "privacyPolicyAcceptedAt": ISO8601DateFormatter().string(from: Date())
         ]
 
-        if !dataNascimento.isEmpty { userData["dataNascimento"] = dataNascimento }
+        userData["dataNascimento"] = dataNascimento
         if !sexo.isEmpty           { userData["sexo"] = sexo }
         if !morada.isEmpty         { userData["morada"] = morada }
+        if !nif.isEmpty            { userData["nif"] = nif }
         if !certNumber.isEmpty     { userData["certNumber"] = certNumber }
         userData["certIssueDate"]  = certIssueDate
         userData["certExpiryDate"] = certExpiryDate
