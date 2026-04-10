@@ -1,11 +1,36 @@
 import SwiftUI
 import MapKit
+import CoreLocation
+
+// MARK: - Location Manager
+
+final class LocationPermissionManager: NSObject, CLLocationManagerDelegate, ObservableObject {
+    private let manager = CLLocationManager()
+    @Published var status: CLAuthorizationStatus = .notDetermined
+
+    override init() {
+        super.init()
+        manager.delegate = self
+        status = manager.authorizationStatus
+    }
+
+    func requestPermission() {
+        if manager.authorizationStatus == .notDetermined {
+            manager.requestWhenInUseAuthorization()
+        }
+    }
+
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        status = manager.authorizationStatus
+    }
+}
 
 // MARK: - Mapa de Vigilância
 
 struct MapaVigilanciaView: View {
     @EnvironmentObject var dashboardVM: DashboardViewModel
     @Environment(\.dismiss) var dismiss
+    @StateObject private var locationMgr = LocationPermissionManager()
 
     @State private var annotations: [ServicoAnnotation] = []
     @State private var mapPosition = MapCameraPosition.region(
@@ -70,6 +95,9 @@ struct MapaVigilanciaView: View {
                                 }
                             }
                         }
+                        if locationMgr.status == .authorizedWhenInUse || locationMgr.status == .authorizedAlways {
+                            UserAnnotation()
+                        }
                     }
                     .frame(height: 300)
 
@@ -125,7 +153,10 @@ struct MapaVigilanciaView: View {
                 }
             }
         }
-        .task { await geocodeServicos() }
+        .task {
+            locationMgr.requestPermission()
+            await geocodeServicos()
+        }
     }
 
     private func statusColor(_ s: ServicoStatus) -> Color {

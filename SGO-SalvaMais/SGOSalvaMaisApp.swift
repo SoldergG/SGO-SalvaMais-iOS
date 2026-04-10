@@ -1,9 +1,10 @@
 import SwiftUI
+import UserNotifications
 
 @main
 struct SGOSalvaMaisApp: App {
     @StateObject private var authVM = AuthViewModel()
-    
+
     var body: some Scene {
         WindowGroup {
             Group {
@@ -16,6 +17,11 @@ struct SGOSalvaMaisApp: App {
                 }
             }
             .preferredColorScheme(.light)
+            .onAppear { requestNotificationPermission() }
         }
+    }
+
+    private func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { _, _ in }
     }
 }

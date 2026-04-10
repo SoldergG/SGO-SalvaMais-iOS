@@ -183,6 +183,7 @@ struct DashboardView: View {
             .sheet(isPresented: $showDefinicoes) {
                 DefinicoesView()
                     .environmentObject(authVM)
+                    .environmentObject(dashboardVM)
             }
             .onAppear {
                 withAnimation(.easeOut(duration: 0.5).delay(0.2)) {
