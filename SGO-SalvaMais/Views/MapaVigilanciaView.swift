@@ -8,9 +8,11 @@ struct MapaVigilanciaView: View {
     @Environment(\.dismiss) var dismiss
 
     @State private var annotations: [ServicoAnnotation] = []
-    @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 39.5, longitude: -8.0),
-        span: MKCoordinateSpan(latitudeDelta: 5.0, longitudeDelta: 5.0)
+    @State private var mapPosition = MapCameraPosition.region(
+        MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 39.5, longitude: -8.0),
+            span: MKCoordinateSpan(latitudeDelta: 5.0, longitudeDelta: 5.0)
+        )
     )
     @State private var isGeocoding = false
     @State private var selectedFilter = "Todos"
@@ -52,23 +54,24 @@ struct MapaVigilanciaView: View {
                     }
 
                     // Map
-                    Map(coordinateRegion: $region, annotationItems: annotations) { ann in
-                        MapAnnotation(coordinate: ann.coordinate) {
-                            VStack(spacing: 2) {
-                                Text(ann.icon)
-                                    .font(.system(size: 22))
-                                Text(ann.name)
-                                    .font(.system(size: 8, weight: .bold))
-                                    .foregroundColor(.sgoBlack)
-                                    .lineLimit(1)
-                                    .padding(.horizontal, 4)
-                                    .background(Color.white.opacity(0.85))
-                                    .clipShape(Capsule())
+                    Map(position: $mapPosition) {
+                        ForEach(annotations) { ann in
+                            Annotation(ann.name, coordinate: ann.coordinate) {
+                                VStack(spacing: 2) {
+                                    Text(ann.icon)
+                                        .font(.system(size: 22))
+                                    Text(ann.name)
+                                        .font(.system(size: 8, weight: .bold))
+                                        .foregroundColor(.sgoBlack)
+                                        .lineLimit(1)
+                                        .padding(.horizontal, 4)
+                                        .background(Color.white.opacity(0.85))
+                                        .clipShape(Capsule())
+                                }
                             }
                         }
                     }
                     .frame(height: 300)
-                    .clipShape(RoundedRectangle(cornerRadius: 0))
 
                     if isGeocoding {
                         HStack(spacing: 8) {
