@@ -201,6 +201,59 @@ class APIService {
     func getEvaluations() async throws -> [Evaluation] {
         try await request("/evaluations")
     }
+
+    // MARK: - Admin: Raw request (for dynamic JSON configs)
+
+    func requestRaw(_ endpoint: String, method: String = "GET", body: [String: Any]? = nil) async throws -> Data {
+        guard let url = URL(string: "\(baseURL)\(endpoint)") else { throw APIError.invalidURL }
+        var req = URLRequest(url: url)
+        req.httpMethod = method
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue(token, forHTTPHeaderField: "x-ei-token")
+        if let body { req.httpBody = try JSONSerialization.data(withJSONObject: body) }
+        let (data, response) = try await session.data(for: req)
+        guard let http = response as? HTTPURLResponse else { throw APIError.invalidResponse }
+        guard 200...299 ~= http.statusCode else {
+            let msg = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw APIError.serverError(http.statusCode, msg)
+        }
+        return data
+    }
+
+    // MARK: - Admin: Config
+
+    func getConfig(_ key: String) async throws -> [String: Any] {
+        let data = try await requestRaw("/config/\(key)")
+        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        return json ?? [:]
+    }
+
+    func saveConfig(_ key: String, value: [String: Any]) async throws {
+        _ = try await requestRaw("/config/\(key)", method: "POST", body: ["value": value])
+    }
+
+    func testSMTP(host: String, port: String, user: String, pass: String, recipient: String) async throws -> Bool {
+        let data = try await requestRaw("/config/test-smtp", method: "POST", body: [
+            "config": ["smtpHost": host, "smtpPort": port, "smtpUser": user, "smtpPass": pass],
+            "recipient": recipient
+        ])
+        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        return json?["success"] as? Bool ?? false
+    }
+
+    // MARK: - Admin: Logs & Health
+
+    func getEmailLogs() async throws -> [EmailLog] {
+        try await request("/email-logs")
+    }
+
+    func getAccessLogs() async throws -> [AccessLog] {
+        try await request("/access-logs")
+    }
+
+    func getHealth() async throws -> HealthStatus {
+        try await request("/health")
+    }
 }
 
 // MARK: - API Error

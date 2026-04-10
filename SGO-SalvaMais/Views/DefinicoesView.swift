@@ -26,6 +26,7 @@ struct DefinicoesView: View {
     @State private var showEntidades = false
     @State private var showCompliance = false
     @State private var showEstatisticas = false
+    @State private var showAdminSistema = false
 
     private var pendingCount: Int {
         dashboardVM.users.filter { $0.isPending == true && $0.isArchived != true }.count
@@ -117,6 +118,15 @@ struct DefinicoesView: View {
                                         subtitle: "Relatórios e métricas do sistema",
                                         color: .blue
                                     ) { showEstatisticas = true }
+
+                                    Divider().opacity(0.2)
+
+                                    adminRow(
+                                        icon: "gearshape.2.fill",
+                                        title: "Administração do Sistema",
+                                        subtitle: "SMTP · Automações · Permissões · Auditoria",
+                                        color: .sgoRed
+                                    ) { showAdminSistema = true }
                                 }
                             }
                         }
@@ -219,6 +229,10 @@ struct DefinicoesView: View {
             .sheet(isPresented: $showEstatisticas) {
                 EstatisticasView()
                     .environmentObject(dashboardVM)
+                    .environmentObject(authVM)
+            }
+            .sheet(isPresented: $showAdminSistema) {
+                AdministracaoSistemaView()
                     .environmentObject(authVM)
             }
         }
